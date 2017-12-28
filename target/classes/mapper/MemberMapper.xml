@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.nextit.member.mapper.MemberMapper">
+
+	<select id="selectMemberCount" resultType="int" parameterType="map" >
+		SELECT
+		  count(*) as count
+		FROM like_tb_member
+		<if test="searchWord != null and searchWord != ''">
+	   		<if test="searchType == 'id'">
+		    	AND mem_id = #{searchWord}
+		    </if>
+		    <if test="searchType == 'nickname'">
+		    	AND mem_nickname LIKE '%' || #{searchWord} || '%'
+		    </if>
+	    </if>
+		ORDER BY reg_date DESC
+	</select>
+  
+  <select id="selectMemberList" resultType="kr.or.nextit.member.model.Member" parameterType="map">
+  <!-- <include refid="CommonMapper.pageHeader"></include> --> 
+  	SELECT
+  		mem_seq_no,
+		mem_id,
+		mem_pwd,
+		mem_nickname,
+		mem_phone,
+		mem_email,
+		mem_zipcode,
+		mem_addr_master,
+		mem_addr_detail,
+		mem_like_cnt,
+		mem_del_yn,
+		reg_user,
+		reg_date,
+		upd_user,
+		upd_date
+	FROM
+	    like_tb_member 
+	<!--  WHERE 1 = 1 
+	     <if test="searchWord != null and searchWord != ''">
+	    	<if test="searchType == 'id'">
+		    	AND mem_id = #{searchWord}
+		    </if>
+		    <if test="searchType == 'name'">
+		    	AND mem_name LIKE '%' || #{searchWord} || '%'
+		    </if>
+	    </if>
+	 -->    
+	ORDER BY reg_date DESC  
+	<!-- <include refid="CommonMapper.pageFooter"></include> -->
+  </select>
+  
+  <select id="selectMember" resultType="kr.or.nextit.member.model.Member" parameterType="String">    
+	  SELECT
+	  		mem_seq_no,
+			mem_id,
+			mem_pwd,
+			mem_nickname,
+			mem_phone,
+			mem_email,
+			mem_zipcode,
+			mem_addr_master,
+			mem_addr_detail,
+			mem_like_cnt,
+			mem_del_yn,
+			reg_user,
+			reg_date,
+			upd_user,
+			upd_date
+		FROM
+		    like_tb_member
+		WHERE mem_id = #{mem_id}
+  </select>
+  
+  <insert id="insertMember" parameterType="Member">
+  	<selectKey keyProperty="mem_seq_no" resultType="int" order="BEFORE">
+		SELECT like_seq_mem_seq_no.nextval from dual
+	</selectKey>
+	INSERT INTO like_tb_member (
+	    mem_seq_no,
+		mem_id,
+		mem_pwd,
+		mem_nickname,
+		mem_phone,
+		mem_email,
+		mem_zipcode,
+		mem_addr_master,
+		mem_addr_detail,
+		mem_like_cnt,
+		mem_del_yn,
+		reg_user,
+		reg_date,
+		upd_user,
+		upd_date
+	) VALUES (
+		#{mem_seq_no},
+		#{mem_id},
+		#{mem_pwd},
+		#{mem_nickname},
+		#{mem_phone},
+		#{mem_email},
+		#{mem_zipcode},
+		#{mem_addr_master},
+		#{mem_addr_detail},
+		0,
+		'N',
+		#{mem_id},
+		SYSDATE,
+		#{mem_id},
+		SYSDATE
+	)
+  
+  </insert>
+  
+  <update id="updateMember" parameterType="Member">
+	  UPDATE like_tb_member SET
+		  mem_pwd             = #{mem_pwd}
+		, mem_nickname        = #{mem_nickname}
+		, mem_phone           = #{mem_phone}
+		, mem_email           = #{mem_email}
+		, mem_zipcode         = #{mem_zipcode}
+		, mem_addr_master     = #{mem_addr_master}
+		, mem_addr_detail     = #{mem_addr_detail}
+		, upd_user            = #{mem_id}
+		, upd_date            = SYSDATE
+	  WHERE mem_id = #{mem_id}
+  </update>
+  
+  
+  <delete id="deleteMember" parameterType="map">
+		UPDATE like_tb_member SET
+			mem_del_yn     = 'Y'		
+		,	upd_user       = #{upd_user}
+		,	upd_date       = SYSDATE
+		WHERE bo_seq_no = #{mem_seq_no}
+  </delete>
+
+  <update id="updateLikeCount" parameterType="int">
+  	UPDATE like_tb_member SET
+  		mem_like_cnt = mem_like_cnt + 1
+  	WHERE mem_seq_no = #{mem_seq_no}
+  </update>
+  
+</mapper>
+
+
+
+

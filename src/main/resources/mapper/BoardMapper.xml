@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.nextit.board.mapper.BoardMapper">
+
+	<select id="selectBoardCount" resultType="int" parameterType="map" >
+		SELECT
+		  count(*) as count
+		FROM like_tb_board a, like_tb_member b
+		WHERE a.bo_writer = b.mem_id
+		AND a.bo_del_yn = 'N'
+		<if test="searchWord != null and searchWord != ''">
+			<if test="searchType == '01'">
+				AND a.bo_title LIKE '%' || #{searchWord} || '%'
+			</if>
+			<if test="searchType == '02'">
+				AND a.bo_content LIKE '%' || #{searchWord} || '%'
+			</if>
+			<if test="searchType == '03'">
+				AND (a.bo_content LIKE '%' || #{searchWord} || '%' OR a.bo_title LIKE '%' || #{searchWord} || '%')
+			</if>
+			<if test="searchType == '04'">
+				AND b.mem_name = #{searchWord}
+			</if>
+		</if>
+		ORDER BY a.bo_seq_no DESC
+	</select>
+	
+	<select id="selectBoardList" resultType="Board" parameterType="map">
+		<include refid="CommonMapper.pageHeader"></include>
+		SELECT 
+			   a.bo_seq_no
+		  ,    a.bo_type
+		  ,    a.bo_title
+		  ,    a.bo_content
+		  ,    a.bo_writer
+		  ,    b.mem_name as bo_writer_name
+		  ,    a.bo_hit_cnt
+		  ,    a.bo_open_yn
+		  ,    a.bo_del_yn
+		  ,    a.reg_user
+		  ,    a.reg_date
+		  ,    a.upd_user
+		  ,    a.upd_date
+		FROM 
+			   like_tb_board a, like_tb_member b
+		WHERE a.bo_writer = b.mem_id
+		AND a.bo_del_yn = 'N'
+		<if test="searchWord != null and searchWord != ''">
+			<if test="searchType == '01'">
+				AND a.bo_title LIKE '%' || #{searchWord} || '%'
+			</if>
+			<if test="searchType == '02'">
+				AND a.bo_content LIKE '%' || #{searchWord} || '%'
+			</if>
+			<if test="searchType == '03'">
+				AND (a.bo_content LIKE '%' || #{searchWord} || '%' OR a.bo_title LIKE '%' || #{searchWord} || '%')
+			</if>
+			<if test="searchType == '04'">
+				AND b.mem_name = #{searchWord}
+			</if>
+		</if>
+		ORDER BY bo_seq_no DESC
+		<include refid="CommonMapper.pageFooter"></include>
+	</select>
+	
+	<select id="selectBoard" resultType="Board" parameterType="int">
+		SELECT 
+			bo_seq_no,
+			bo_type,
+			bo_title,
+			bo_content,
+			bo_writer,
+			bo_hit_cnt,
+			bo_open_yn,
+			bo_del_yn,
+			bo_like_cnt,
+			reg_user,
+			reg_date,
+			upd_user,
+			upd_date
+		FROM 
+			like_tb_board
+		WHERE bo_del_yn = 'N'
+		AND bo_seq_no = #{bo_seq_no}
+	</select>
+	
+	<insert id="insertBoard" parameterType="Board"  >
+		<selectKey keyProperty="bo_seq_no" resultType="int" order="BEFORE">
+			SELECT like_seq_bo_seq_no.nextval from dual
+		</selectKey>
+		INSERT INTO like_tb_board (
+		    bo_seq_no
+		  , bo_type
+		  , bo_title
+		  , bo_content
+		  , bo_writer
+		  , bo_hit_cnt
+		  , bo_open_yn
+		  , bo_del_yn
+		  , bo_like_cnt
+		  , reg_user
+		  , reg_date
+		  , upd_user
+		  , upd_date
+		) VALUES (
+		    #{bo_seq_no}
+		  , #{bo_type}
+		  , #{bo_title}
+		  , #{bo_content}
+		  , #{bo_writer}
+		  , 0
+		  , NVL(#{bo_open_yn},'N')
+		  , 'N'
+		  , 0
+		  , #{reg_user}
+		  , SYSDATE
+		  , #{upd_user}
+		  , SYSDATE
+		)
+	</insert>
+	
+	<update id="updateBoard" parameterType="Board" >
+		UPDATE like_tb_board SET			
+			bo_type        = #{bo_type}
+		,	bo_title       = #{bo_title}
+		,	bo_content     = #{bo_content}
+		,	bo_open_yn     = #{bo_open_yn}		
+		,	upd_user       = #{upd_user}
+		,	upd_date       = SYSDATE
+		WHERE bo_seq_no = #{bo_seq_no}
+	</update>
+	
+	<delete id="deleteBoard" parameterType="map" >
+		UPDATE like_tb_board SET
+			bo_del_yn     = 'Y'		
+		,	upd_user       = #{upd_user}
+		,	upd_date       = SYSDATE
+		WHERE bo_seq_no = #{bo_seq_no}
+	</delete>
+	
+	<update id="updateHitCnt" parameterType="int" >
+		UPDATE like_tb_board SET
+			bo_hit_cnt = bo_hit_cnt + 1
+		WHERE bo_seq_no = #{bo_seq_no}
+	</update>
+	
+	<update id="updateLikeCount" parameterType="int" >
+		UPDATE like_tb_board SET
+			bo_like_cnt = bo_like_cnt + 1
+		WHERE bo_seq_no = #{bo_seq_no}
+	</update>
+
+</mapper>
